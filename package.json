@@ -1,0 +1,31 @@
+{
+  "name": "lighthouse-bot",
+  "version": "1.0.0",
+  "main": "stc/index.ts",
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon --exec ts-node --esm ./src/index.ts"
+  },
+  "type": "module",
+  "dependencies": {
+    "@types/config": "^3.3.0",
+    "bullmq": "^4.6.3",
+    "chrome-launcher": "^1.0.0",
+    "config": "^3.3.9",
+    "envalid": "^7.3.1",
+    "https-proxy-agent": "^7.0.1",
+    "lighthouse": "^10.4.0",
+    "mongoose": "^7.4.1",
+    "puppeteer-core": "^20.9.0",
+    "socks-proxy-agent": "^8.0.1",
+    "telegraf": "^4.12.2",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.5",
+    "dotenv": "^16.3.1",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  }
+}

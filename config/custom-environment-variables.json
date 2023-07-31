@@ -1,0 +1,10 @@
+{
+    "mongodbURI": "MONGODB_URI",
+    "bot": {
+        "token": "BOT_TOKEN",
+        "socksProxy": {
+            "host": "SOCKS_HOST",
+            "port": "SOCKS_PORT"
+        }
+    }
+}
