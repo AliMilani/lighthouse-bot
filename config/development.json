@@ -1,3 +1,3 @@
 {
-    "mongodbURI": "mongodb://localhost:27017/feedback-app"
+    "mongodbURI": "mongodb://localhost:27017/lighthouse-bot"
 }
