@@ -4,6 +4,7 @@ import { SocksProxyAgent } from "socks-proxy-agent";
 import UserService from "../user/userService.ts";
 import IBotContext from "../../interfaces/IBotContext.ts";
 import ReportService from "../report/reportService.ts";
+import ReportHandler from "../report/reportHandler.ts";
 // import commands from "./commands.ts";
 
 type BotOptions = {
@@ -37,10 +38,16 @@ class Bot {
   private _isLaunched: boolean = false;
   private _userService: UserService;
   private _reportService: ReportService;
+  private _reportHandler: ReportHandler;
 
-  private constructor(userService: UserService, reportService: ReportService) {
+  private constructor(
+    userService: UserService,
+    reportService: ReportService,
+    reportHandler: ReportHandler
+  ) {
     this._userService = userService;
     this._reportService = reportService;
+    this._reportHandler = reportHandler;
 
     if (this._hasSocksProxy()) {
       this._botOptions.telegram = {
@@ -172,10 +179,15 @@ class Bot {
         );
       }
 
-      await this._reportService.create({
+      // await this._reportService.create({
+      //   userId: ctx.userId,
+      //   websiteUrl: url,
+      //   hour: hour,
+      // });
+      await this._reportHandler.createDailyReport({
         userId: ctx.userId,
+        hour,
         websiteUrl: url,
-        hour: hour,
       });
 
       return await ctx.telegram.sendMessage(
@@ -217,9 +229,11 @@ class Bot {
 
   public static getInstance(
     userService: UserService,
-    reportService: ReportService
+    reportService: ReportService,
+    reportHandler: ReportHandler
   ): Bot {
-    if (!Bot._instance) Bot._instance = new Bot(userService, reportService);
+    if (!Bot._instance)
+      Bot._instance = new Bot(userService, reportService, reportHandler);
     return Bot._instance;
   }
 }
