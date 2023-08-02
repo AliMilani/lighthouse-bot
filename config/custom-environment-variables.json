@@ -6,5 +6,13 @@
             "host": "SOCKS_HOST",
             "port": "SOCKS_PORT"
         }
+    },
+    "redis": {
+        "host": "REDIS_HOST",
+        "port": "REDIS_PORT"
+    },
+    "headLessBrowser": {
+        "endpoint": "HEADLESS_BROWSER_ENDPOINT",
+        "token": "HEADLESS_BROWSER_TOKEN"
     }
 }

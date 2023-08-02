@@ -1,11 +1,19 @@
 {
-    "mongodbURI": "",
-    "socksProxy": "",
-    "bot": {
-        "token": "",
-        "socksProxy": {
-            "host": "",
-            "port": ""
-        }
+"mongodbURI": "",
+"socksProxy": "",
+"bot": {
+    "token": "",
+    "socksProxy": {
+        "host": "",
+        "port": ""
     }
+},
+"redis": {
+    "host": "",
+    "port": ""
+},
+"headLessBrowser": {
+    "endpoint": "",
+    "token": ""
+}
 }
