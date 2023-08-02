@@ -2,7 +2,12 @@ import "dotenv/config.js";
 import mongoose from "mongoose";
 import config from "config";
 import validateEnv from "./startup/validateEnv.ts";
-import { reportService, userService } from "./DI.ts";
+import {
+  // reportProducer,
+  reportService,
+  userService,
+  reportHandler,
+} from "./DI.ts";
 import ReportConsumer from "./modules/report/reportConsumer.ts";
 
 import Bot from "./modules/bot/bot.ts";
@@ -13,7 +18,7 @@ class App {
 
   constructor() {
     validateEnv(process.env);
-    this._bot = Bot.getInstance(userService, reportService);
+    this._bot = Bot.getInstance(userService, reportService, reportHandler);
     new ReportConsumer(reportService, this._bot);
   }
 
