@@ -2,16 +2,13 @@ import { Worker, Job, RedisClient, WorkerOptions } from "bullmq";
 import { Input, TelegramError } from "telegraf";
 import config from "config";
 import { ReportJobData } from "../../types/reportTypes.ts";
-// import ReportService from "./reportService.ts";
 import { ReportJobSteps } from "../../enums/reportEnums.ts";
 import { createReport } from "../../lib/lighthose.ts";
-// import FileCache from "../../lib/fileCache.ts";
 import { convertFromHtml } from "../../utils/pdfUtil.ts";
 import Bot from "../bot/bot.ts";
 
 class ReportConsumer {
   private _worker: Worker;
-  // private _reportService: ReportService;
   private _bot: Bot;
   private readonly _queueName = "reportQueue";
   private _workerOptions: WorkerOptions = {
@@ -22,12 +19,9 @@ class ReportConsumer {
     },
     autorun: true,
   };
-  // private _redisClientGetter: Promise<RedisClient>;
-  // private fileCache: FileCache
   constructor(bot: Bot) {
     this._bot = bot;
 
-    // this._reportService = reportService;
     this._worker = new Worker<ReportJobData>(
       this._queueName,
       this._reportProcessor,
@@ -37,16 +31,10 @@ class ReportConsumer {
     this._worker.on("failed", this._handleFailedJob);
     this._worker.on("completed", this._handleCompletedJob);
     this._worker.on("progress", this._handleProgressJob);
-    // this.fileCache = new FileCache(this._worker.client);
-    // this._redisClientGetter = this._worker.client;
   }
 
   private _reportProcessor = async (job: Job<ReportJobData>): Promise<void> => {
     console.log(JSON.stringify(job.asJSON(), null, 2));
-
-    // const report = await this._reportService.findById(job.data.reportId);
-    // if (!report)
-    // throw new Error(`Report with id ${job.data.reportId} not found`);
     const chatId = job.data.chatId;
     const bot = this._bot.getBot();
 

@@ -2,12 +2,7 @@ import "dotenv/config.js";
 import mongoose from "mongoose";
 import config from "config";
 import validateEnv from "./startup/validateEnv.ts";
-import {
-  // reportProducer,
-  // reportService,
-  userService,
-  reportHandler,
-} from "./DI.ts";
+import { userService, reportHandler } from "./DI.ts";
 import ReportConsumer from "./modules/report/reportConsumer.ts";
 
 import Bot from "./modules/bot/bot.ts";
@@ -31,24 +26,8 @@ class App {
     const dbUri = config.get<string>("mongodbURI");
     const db = await mongoose.connect(dbUri);
     console.log("Connected to database");
-    // this._handleDatabaseError(db.connection);
     return db.connection;
   }
-
-  // private async _connectRedis(): Promise<void> {
-
-  // }
-
-  // private connectRedis
-
-  // private _handleDatabaseError(connection: mongoose.Connection): void {
-  //   connection.on("error", (err) => {
-  //     throw new Error(`Database error: ${err}`);
-  //   });
-  //   connection.on("disconnected", () => {
-  //     throw new Error("Database disconnected");
-  //   });
-  // }
 
   public async stop(): Promise<void> {
     this._bot.stop();

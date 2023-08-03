@@ -43,11 +43,11 @@ class Bot {
     this._userService = userService;
     this._reportHandler = reportHandler;
 
-    if (this._hasSocksProxy()) {
+    if (this._hasSocksProxy())
       this._botOptions.telegram = {
         agent: this._getSocksProxyAgent(),
       };
-    }
+
     const botToken = config.get<string>("bot.token");
 
     this._bot = new Telegraf<IBotContext>(botToken, this._botOptions);
@@ -69,43 +69,14 @@ class Bot {
   private _useCommands(): void {
     this._bot.telegram.setMyCommands([
       { command: "help", description: "راهنمای ربات" },
-      // { command: "daily", description: "تنظیم گزارش روزانه" },
-      // { command: "now", description: "گزارش فوری" },
-      {command: "list", description: "لیست گزارشات روزانه"},
-    ])
-    // const menuKeyboard = Markup.keyboard(
-    //   [
-    //     Markup.button.callback("تست سایت", "testSite"),
-    //     Markup.button.callback("تست روزانه", "dailyTest"),
-    //     Markup.button.callback("غیر فعال کردن تست روزانه", "disableDailyTest"),
-    //   ],
-    //   {
-    //     columns: 2,
-    //   }
-    // );
-    // const menuMessage = `سلام، به ربات lighthouse خوش آمدید.`;
-    // // testSite Scene
-    // const testSiteScene = new Scenes.BaseScene<IBotContext>("testStie");
-    // testSiteScene.enter(async (ctx) => {
-    // });
-    // testSiteScene.leave(async (ctx) => {});
-    // const stage = new Scenes.Stage<IBotContext>([testSiteScene], {
-    //   ttl: 10,
-    // });
-    // this._bot.use(session());
-    // this._bot.use(stage.middleware());
-    // this._bot.start(async (ctx) => {
-    //   return await ctx.reply(menuMessage, menuKeyboard);
-    // });
-    // this._bot.action("testSite", async (ctx) => {
-    //   return await ctx.scene.enter("testStie");
-    // });
+      { command: "list", description: "لیست گزارشات روزانه" },
+    ]);
     const welcomeMessage = `سلام، به ربات lighthouse خوش آمدید. \n برای راهنمایی بیشتر /help را ارسال کنید.`;
     this._bot.start(async (ctx) => {
       await ctx.telegram.sendMessage(ctx.chat.id, welcomeMessage);
       await this._sendHelp(ctx.chat.id);
     });
-    // register commands
+
     this._bot.command("help", async (ctx) => {
       await this._sendHelp(ctx.chat.id);
     });
@@ -219,7 +190,7 @@ class Bot {
         throw error;
       }
     });
-    // handle remove_
+
     this._bot.hears(/^\/remove_(\w+)$/, async (ctx) => {
       const id = ctx.match[1];
       if (!mongoose.isValidObjectId(id))

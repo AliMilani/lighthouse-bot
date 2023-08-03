@@ -52,9 +52,9 @@ class ReportPoducer {
         pattern: cronHour,
         jobId: reportData.reportId,
       },
+      // repeatJobKey
       priority: 2,
 
-      // //expire in 2 min
       attempts: 5,
       backoff: {
         type: "exponential",
@@ -71,9 +71,7 @@ class ReportPoducer {
 
   private _getCronHour(hour: number): string {
     if (hour < 0 || hour > 23) throw new Error("Invalid hour");
-    // const eachOneMinuteCron = `*/1 * * * *`;
     return `0 ${hour} * * *`;
-    // return eachOneMinuteCron;
   }
 
   async removeReportJob(jobId: string): Promise<void> {

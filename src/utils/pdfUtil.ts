@@ -21,11 +21,9 @@ const convertFromHtml = async (html: string) => {
 
   await page.evaluate(() => {
     document.querySelectorAll(".lh-expandable-details").forEach((el) => {
-      // add open attribute to all expandable details
       el.setAttribute("open", "");
     });
     document.querySelectorAll(".lh-clump--passed").forEach((el) => {
-      // add open attribute to all expandable details
       el.setAttribute("open", "");
     });
   });
