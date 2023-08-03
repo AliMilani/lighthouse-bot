@@ -4,8 +4,8 @@
 "bot": {
     "token": "",
     "socksProxy": {
-        "host": "",
-        "port": ""
+    "host": "",
+    "port": ""
     }
 },
 "redis": {
@@ -15,5 +15,8 @@
 "headLessBrowser": {
     "endpoint": "",
     "token": ""
+},
+"report": {
+    "concurrency": 3
 }
 }

@@ -14,6 +14,10 @@ class ReportService {
     return ReportModel.find({ userId });
   }
 
+  deleteById(id: string) {
+    return ReportModel.findByIdAndDelete(id);
+  }
+
   updateJobId(reportId: string, jobId: string) {
     return ReportModel.findByIdAndUpdate(reportId, { jobId });
   }

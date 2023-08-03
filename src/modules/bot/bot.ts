@@ -4,6 +4,7 @@ import { SocksProxyAgent } from "socks-proxy-agent";
 import UserService from "../user/userService.ts";
 import IBotContext from "../../interfaces/IBotContext.ts";
 import ReportHandler from "../report/reportHandler.ts";
+import mongoose from "mongoose";
 // import commands from "./commands.ts";
 
 type BotOptions = {
@@ -192,6 +193,51 @@ class Bot {
       return await ctx.telegram.sendMessage(
         ctx.chat.id,
         `گزارش شما با موفقیت ثبت شد. \n تا دقایقی دیگر فایل pdf برای شما ارسال خواهد شد`
+      );
+    });
+
+    this._bot.command("list", async (ctx) => {
+      try {
+        const dailyReports = await this._reportHandler.getDailyReports(
+          ctx.userId
+        );
+        const message: string = dailyReports
+          .map((report) => {
+            return `وب سایت: ${report.websiteUrl} \n ساعت: ${report.hour}\n لغو /remove_${report.id}`;
+          })
+          .join("\n\n");
+        return await ctx.telegram.sendMessage(ctx.chat.id, message);
+      } catch (error: unknown) {
+        if (error instanceof Error && error?.message === "No reports found")
+          return await ctx.telegram.sendMessage(ctx.chat.id, "گزارشی یافت نشد");
+        throw error;
+      }
+    });
+    // handle remove_
+    this._bot.hears(/^\/remove_(\w+)$/, async (ctx) => {
+      const id = ctx.match[1];
+      if (!mongoose.isValidObjectId(id))
+        return await ctx.reply("شناسه گزارش اشتباه است");
+      try {
+        await this._reportHandler.removeDailyReport(id.toString(), ctx.userId);
+      } catch (error) {
+        if (!(error instanceof Error)) throw error;
+        if (error.message === "Report id not found in database")
+          return await ctx.telegram.sendMessage(
+            ctx.chat.id,
+            "گزارش یافت نشد \n ممکن است گزارش از قبل حذف شده باشد"
+          );
+        if (error.message === "You are not allowed to remove this report") {
+          return await ctx.telegram.sendMessage(
+            ctx.chat.id,
+            "شما اجازه حذف این گزارش را ندارید"
+          );
+        }
+        throw error;
+      }
+      return await ctx.telegram.sendMessage(
+        ctx.chat.id,
+        `گزارش با موفقیت حذف شد`
       );
     });
   }

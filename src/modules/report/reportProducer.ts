@@ -53,11 +53,11 @@ class ReportPoducer {
         jobId: reportData.reportId,
       },
       priority: 2,
-      
+
       // //expire in 2 min
       attempts: 5,
       backoff: {
-        type: 'exponential',
+        type: "exponential",
         delay: 3000,
       },
     });
@@ -77,9 +77,24 @@ class ReportPoducer {
   }
 
   async removeReportJob(jobId: string): Promise<void> {
-    const job: Job | undefined = await this._queue.getJob(jobId);
-    if (!job) throw new Error("job not found");
-    await job.remove();
+    const job = await this._findJob(jobId);
+    const isRemoved = await this._queue.removeRepeatableByKey(job.key);
+    if (!isRemoved) throw new Error("Job not found");
+  }
+
+  private async _findJob(jobId: string): Promise<{
+    endDate: number;
+    id: string;
+    key: string;
+    name: string;
+    next: number;
+    pattern: string;
+    tz: string;
+  }> {
+    const jobs = await this._queue.getRepeatableJobs();
+    const job = jobs.find((job) => job.id === jobId);
+    if (!job) throw new Error("Repeatable job not found");
+    return job;
   }
 
   stop(): Promise<void> {

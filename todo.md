@@ -17,3 +17,4 @@ google lighthouse telegram bot
 -user rate limit
 -logger
 -scale telegraf
+-woker configs (concurency, 

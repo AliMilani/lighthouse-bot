@@ -14,7 +14,6 @@ type createDailyReportParams = {
 };
 
 class ReportHandler {
-
   constructor(
     private _reportService: ReportService,
     private _userService: UserService,
@@ -69,6 +68,41 @@ class ReportHandler {
       userOtherReports.filter((report) => report.websiteUrl === websiteUrl)
         .length >= 3;
     if (isReachingLimit) throw new Error("Reaching same website limit");
+  }
+
+  private _isValidHour(hour: number): boolean {
+    return hour === 0 || hour < 24 || hour > 0;
+  }
+
+  public async getDailyReports(
+    userId: string
+  ): Promise<{ websiteUrl: string; hour: number; id: string }[]> {
+    const reports = await this._reportService.findAllByUserId(userId);
+    if (reports.length === 0) throw new Error("No reports found");
+    const reportsList = reports
+      .filter(
+        (report) => report.hour !== undefined && this._isValidHour(report.hour)
+      )
+      .map(({ websiteUrl, hour, _id }) => ({
+        websiteUrl,
+        hour: hour as number,
+        id: _id.toString(),
+      }));
+    if (reportsList.length === 0) throw new Error("No reports found");
+    return reportsList;
+  }
+
+  public async removeDailyReport(
+    reportId: string,
+    userId: string
+  ): Promise<void> {
+    const report = await this._reportService.findById(reportId);
+    if (!report) throw new Error(`Report id not found in database`);
+    console.log(report.userId, userId);
+    if (report.userId.toString() !== userId.toString())
+      throw new Error("You are not allowed to remove this report");
+    await this._reportProducer.removeReportJob(report._id.toString());
+    await this._reportService.deleteById(reportId);
   }
 }
 
