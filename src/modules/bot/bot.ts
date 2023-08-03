@@ -5,7 +5,6 @@ import UserService from "../user/userService.ts";
 import IBotContext from "../../interfaces/IBotContext.ts";
 import ReportHandler from "../report/reportHandler.ts";
 import mongoose from "mongoose";
-// import commands from "./commands.ts";
 
 type BotOptions = {
   telegram?: {
@@ -14,22 +13,6 @@ type BotOptions = {
 };
 
 type SocksProxy = { host: string; port: string };
-
-// const botOptions: BotOptions = {};
-
-// if (config.has("bot.socksProxy.host") && config.has("bot.socksProxy.port")) {
-//   const socksProxyAgent = new SocksProxyAgent(
-//     `socks://${config.get<string>("bot.socksProxy.host")}:${config.get<string>(
-//       "bot.socksProxy.port"
-//     )}`
-//   );
-//   botOptions.telegram = {
-//     agent: socksProxyAgent,
-//   };
-// }
-// const botToken = config.get<string>("bot.token");
-
-// const bot = new Telegraf(botToken, botOptions);
 
 class Bot {
   private static _instance: Bot;
@@ -66,21 +49,71 @@ class Bot {
     return new SocksProxyAgent(`socks://${socksProxy.host}:${socksProxy.port}`);
   }
 
+  private _useUserIdMiddleware(): void {
+    this._bot.use(async (ctx, next) => {
+      const chatId = ctx.chat?.id;
+      if (!chatId) throw new Error("chatId is undefined");
+      const user = await this._userService.findByChatId(chatId);
+      if (!user) {
+        const createdUser = await this._userService.create({
+          chatId,
+        });
+        ctx.userId = createdUser.id;
+      } else {
+        ctx.userId = user.id;
+      }
+      await next();
+    });
+  }
+
   private _useCommands(): void {
     this._bot.telegram.setMyCommands([
       { command: "help", description: "راهنمای ربات" },
       { command: "list", description: "لیست گزارشات روزانه" },
     ]);
+
+    this._useStartCommand();
+    this._useHelpCommand();
+    this._useDailyCommand();
+    this._useNowCommand();
+    this._useListCommand();
+    this._useRemoveCommand();
+  }
+
+  private _useStartCommand(): void {
     const welcomeMessage = `سلام، به ربات lighthouse خوش آمدید. \n برای راهنمایی بیشتر /help را ارسال کنید.`;
     this._bot.start(async (ctx) => {
       await ctx.telegram.sendMessage(ctx.chat.id, welcomeMessage);
       await this._sendHelp(ctx.chat.id);
     });
+  }
 
+  private async _sendHelp(chatId: number): Promise<void> {
+    const helpMessage = `
+    ✔<b>دریافت گزارش روزانه</b>:
+برای دریافت گزارش به صورت روزانه دستور زیر را ارسال کنید و طبق این فرمت ادرس سایت و ساعت را مشخص کنید
+/daily example.com 15
+در مثال بالا هر روز ساعت ۳ گزارش ارسال می شود
+
+
+✔<b>دریافت گزارش فوری</b>:
+/now example.com‍‍
+
+✔<b>لیست گزارش ها</b>:
+برای مشاهده لیست گزارش های خود دستور زیر را ارسال کنید
+/list`;
+    await this._bot.telegram.sendMessage(chatId, helpMessage, {
+      parse_mode: "HTML",
+    });
+  }
+
+  private _useHelpCommand(): void {
     this._bot.command("help", async (ctx) => {
       await this._sendHelp(ctx.chat.id);
     });
+  }
 
+  private _useDailyCommand(): void {
     this._bot.command("daily", async (ctx) => {
       const args = ctx.message.text.split(" ");
       if (args.length !== 3) {
@@ -92,6 +125,13 @@ class Bot {
       }
       const url = args[1];
       const hour = parseInt(args[2]);
+
+      if (isNaN(hour)) {
+        return await ctx.telegram.sendMessage(
+          ctx.chat.id,
+          "فرمت دستور اشتباه است"
+        );
+      }
 
       if (!url || !hour) {
         await ctx.telegram.sendMessage(
@@ -107,13 +147,6 @@ class Bot {
           "ساعت باید بین 0 تا 23 باشد"
         );
         return;
-      }
-
-      if (isNaN(hour)) {
-        return await ctx.telegram.sendMessage(
-          ctx.chat.id,
-          "فرمت دستور اشتباه است"
-        );
       }
 
       try {
@@ -143,7 +176,9 @@ class Bot {
         `گزارش شما با موفقیت ثبت شد. \n شما می توانید با دستور /list گزارش های خود را مشاهده کنید.`
       );
     });
+  }
 
+  private _useNowCommand(): void {
     this._bot.command("now", async (ctx) => {
       const args = ctx.message.text.split(" ");
       if (args.length !== 2) {
@@ -172,7 +207,9 @@ class Bot {
         `گزارش شما با موفقیت ثبت شد. \n تا دقایقی دیگر فایل pdf برای شما ارسال خواهد شد`
       );
     });
+  }
 
+  private _useListCommand(): void {
     this._bot.command("list", async (ctx) => {
       try {
         const dailyReports = await this._reportHandler.getDailyReports(
@@ -190,7 +227,9 @@ class Bot {
         throw error;
       }
     });
+  }
 
+  private _useRemoveCommand(): void {
     this._bot.hears(/^\/remove_(\w+)$/, async (ctx) => {
       const id = ctx.match[1];
       if (!mongoose.isValidObjectId(id))
@@ -216,42 +255,6 @@ class Bot {
         ctx.chat.id,
         `گزارش با موفقیت حذف شد`
       );
-    });
-  }
-
-  private async _sendHelp(chatId: number): Promise<void> {
-    const helpMessage = `
-    ✔<b>دریافت گزارش روزانه</b>:
-برای دریافت گزارش به صورت روزانه دستور زیر را ارسال کنید و طبق این فرمت ادرس سایت و ساعت را مشخص کنید
-/daily example.com 15
-در مثال بالا هر روز ساعت ۳ گزارش ارسال می شود
-
-
-✔<b>دریافت گزارش فوری</b>:
-/now example.com‍‍
-
-✔<b>لیست گزارش ها</b>:
-برای مشاهده لیست گزارش های خود دستور زیر را ارسال کنید
-/list`;
-    await this._bot.telegram.sendMessage(chatId, helpMessage, {
-      parse_mode: "HTML",
-    });
-  }
-
-  private _useUserIdMiddleware(): void {
-    this._bot.use(async (ctx, next) => {
-      const chatId = ctx.chat?.id;
-      if (!chatId) throw new Error("chatId is undefined");
-      const user = await this._userService.findByChatId(chatId);
-      if (!user) {
-        const createdUser = await this._userService.create({
-          chatId,
-        });
-        ctx.userId = createdUser.id;
-      } else {
-        ctx.userId = user.id;
-      }
-      await next();
     });
   }
 
