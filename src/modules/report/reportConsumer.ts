@@ -42,15 +42,6 @@ class ReportConsumer {
   }
 
   private _reportProcessor = async (job: Job<ReportJobData>): Promise<void> => {
-    // remove expired jobs
-    const expireMs = 60 * 1000 * 5;
-    if (job.timestamp + expireMs < Date.now()) {
-      // job.discard();
-      // if (!job.token) throw new Error("Job token is undefined");
-      // await job.moveToFailed(new Error("Job expired"), job.token);
-      // return;
-      throw new Error("Job expired");
-    }
     console.log(JSON.stringify(job.asJSON(), null, 2));
 
     // const report = await this._reportService.findById(job.data.reportId);
