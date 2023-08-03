@@ -3,7 +3,6 @@ import config from "config";
 import { SocksProxyAgent } from "socks-proxy-agent";
 import UserService from "../user/userService.ts";
 import IBotContext from "../../interfaces/IBotContext.ts";
-import ReportService from "../report/reportService.ts";
 import ReportHandler from "../report/reportHandler.ts";
 // import commands from "./commands.ts";
 
@@ -37,16 +36,10 @@ class Bot {
   private _botOptions: BotOptions = {};
   private _isLaunched: boolean = false;
   private _userService: UserService;
-  private _reportService: ReportService;
   private _reportHandler: ReportHandler;
 
-  private constructor(
-    userService: UserService,
-    reportService: ReportService,
-    reportHandler: ReportHandler
-  ) {
+  private constructor(userService: UserService, reportHandler: ReportHandler) {
     this._userService = userService;
-    this._reportService = reportService;
     this._reportHandler = reportHandler;
 
     if (this._hasSocksProxy()) {
@@ -57,7 +50,7 @@ class Bot {
     const botToken = config.get<string>("bot.token");
 
     this._bot = new Telegraf<IBotContext>(botToken, this._botOptions);
-    this._userIdMiddleware();
+    this._useUserIdMiddleware();
     this._useCommands();
   }
 
@@ -101,24 +94,13 @@ class Bot {
     //   return await ctx.scene.enter("testStie");
     // });
     const welcomeMessage = `سلام، به ربات lighthouse خوش آمدید. \n برای راهنمایی بیشتر /help را ارسال کنید.`;
-    const helpMessage = `
-    ✔<b>دریافت گزارش روزانه</b>:
-برای دریافت گزارش به صورت روزانه دستور زیر را ارسال کنید و طبق این فرمت ادرس سایت و ساعت را مشخص کنید
-<code>/daily example.com 15</code>
-در مثال بالا هر روز ساعت ۳ گزارش ارسال می شود
-
-
-✔<b>دریافت گزارش فوری</b>:
-<code>/now example.com‍‍</code>`;
     this._bot.start(async (ctx) => {
       await ctx.telegram.sendMessage(ctx.chat.id, welcomeMessage);
-      await ctx.telegram.sendMessage(ctx.chat.id, helpMessage, {
-        parse_mode: "HTML",
-      });
+      await this._sendHelp(ctx.chat.id);
     });
     // register commands
     this._bot.command("help", async (ctx) => {
-      await ctx.replyWithHTML(helpMessage);
+      await this._sendHelp(ctx.chat.id);
     });
 
     this._bot.command("daily", async (ctx) => {
@@ -144,7 +126,7 @@ class Bot {
       if (hour < 0 || hour > 23) {
         await ctx.telegram.sendMessage(
           ctx.chat.id,
-          "ساعت باید بین ۰ تا ۲3 باشد"
+          "ساعت باید بین 0 تا 24 باشد"
         );
         return;
       }
@@ -155,49 +137,81 @@ class Bot {
           "فرمت دستور اشتباه است"
         );
       }
-      const userOtherReports = await this._reportService.findAllByUserId(
-        ctx.userId
-      );
 
-      const isDuplicate = userOtherReports.some(
-        (report) => report.websiteUrl === url && report.hour === hour
-      );
-
-      const toManySameReports =
-        userOtherReports.filter((report) => report.websiteUrl === url).length >=
-        3;
-      if (isDuplicate) {
-        return await ctx.telegram.sendMessage(
-          ctx.chat.id,
-          "این گزارش قبلا ثبت شده است"
-        );
+      try {
+        await this._reportHandler.createDailyReport({
+          userId: ctx.userId,
+          hour,
+          websiteUrl: url,
+        });
+      } catch (error) {
+        if (!(error instanceof Error)) throw error;
+        if (error.message === "Duplicate daily report") {
+          return await ctx.telegram.sendMessage(
+            ctx.chat.id,
+            "این گزارش قبلا ثبت شده است"
+          );
+        }
+        if (error.message === "Reaching same website limit") {
+          return await ctx.telegram.sendMessage(
+            ctx.chat.id,
+            "شما نمی توانید بیش از ۳ گزارش با یک آدرس وب سایت ثبت کنید"
+          );
+        }
       }
-      if (toManySameReports) {
-        return await ctx.telegram.sendMessage(
-          ctx.chat.id,
-          "شما نمی توانید بیش از ۳ گزارش با یک آدرس وب سایت ثبت کنید"
-        );
-      }
-
-      // await this._reportService.create({
-      //   userId: ctx.userId,
-      //   websiteUrl: url,
-      //   hour: hour,
-      // });
-      await this._reportHandler.createDailyReport({
-        userId: ctx.userId,
-        hour,
-        websiteUrl: url,
-      });
 
       return await ctx.telegram.sendMessage(
         ctx.chat.id,
         `گزارش شما با موفقیت ثبت شد. \n شما می توانید با دستور /list گزارش های خود را مشاهده کنید.`
       );
     });
+
+    this._bot.command("now", async (ctx) => {
+      const args = ctx.message.text.split(" ");
+      if (args.length !== 2) {
+        await ctx.telegram.sendMessage(
+          ctx.chat.id,
+          "فرمت دستور اشتباه است \n برای راهنمایی بیشتر /help را ارسال کنید"
+        );
+        return;
+      }
+      const url = args[1];
+
+      if (!url) {
+        await ctx.telegram.sendMessage(
+          ctx.chat.id,
+          "فرمت دستور اشتباه است \n برای راهنمایی بیشتر /help را ارسال کنید"
+        );
+        return;
+      }
+      await this._reportHandler.createReportNow({
+        userId: ctx.userId,
+        websiteUrl: url,
+      });
+
+      return await ctx.telegram.sendMessage(
+        ctx.chat.id,
+        `گزارش شما با موفقیت ثبت شد. \n تا دقایقی دیگر فایل pdf برای شما ارسال خواهد شد`
+      );
+    });
   }
 
-  private _userIdMiddleware(): void {
+  private async _sendHelp(chatId: number): Promise<void> {
+    const helpMessage = `
+    ✔<b>دریافت گزارش روزانه</b>:
+برای دریافت گزارش به صورت روزانه دستور زیر را ارسال کنید و طبق این فرمت ادرس سایت و ساعت را مشخص کنید
+<code>/daily example.com 15</code>
+در مثال بالا هر روز ساعت ۳ گزارش ارسال می شود
+
+
+✔<b>دریافت گزارش فوری</b>:
+<code>/now example.com‍‍</code>`;
+    await this._bot.telegram.sendMessage(chatId, helpMessage, {
+      parse_mode: "HTML",
+    });
+  }
+
+  private _useUserIdMiddleware(): void {
     this._bot.use(async (ctx, next) => {
       const chatId = ctx.chat?.id;
       if (!chatId) throw new Error("chatId is undefined");
@@ -229,11 +243,9 @@ class Bot {
 
   public static getInstance(
     userService: UserService,
-    reportService: ReportService,
     reportHandler: ReportHandler
   ): Bot {
-    if (!Bot._instance)
-      Bot._instance = new Bot(userService, reportService, reportHandler);
+    if (!Bot._instance) Bot._instance = new Bot(userService, reportHandler);
     return Bot._instance;
   }
 }

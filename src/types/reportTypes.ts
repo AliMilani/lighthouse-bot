@@ -8,6 +8,8 @@ type ReportJobData = {
   chatId: number;
   userId: string | ObjectId;
   websiteUrl: string;
+  progressMessageId?: number;
+  isCancelled?: boolean;
 };
 
 export { ReportJobData };

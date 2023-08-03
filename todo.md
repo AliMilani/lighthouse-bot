@@ -11,3 +11,9 @@ google lighthouse telegram bot
 - docker / docker-compose
 - tests (jest) (unit, integration)
 - deploy
+
+
+
+-user rate limit
+-logger
+-scale telegraf

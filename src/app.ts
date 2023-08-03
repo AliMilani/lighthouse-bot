@@ -4,7 +4,7 @@ import config from "config";
 import validateEnv from "./startup/validateEnv.ts";
 import {
   // reportProducer,
-  reportService,
+  // reportService,
   userService,
   reportHandler,
 } from "./DI.ts";
@@ -18,8 +18,8 @@ class App {
 
   constructor() {
     validateEnv(process.env);
-    this._bot = Bot.getInstance(userService, reportService, reportHandler);
-    new ReportConsumer(reportService, this._bot);
+    this._bot = Bot.getInstance(userService, reportHandler);
+    new ReportConsumer(this._bot);
   }
 
   public async start(): Promise<void> {

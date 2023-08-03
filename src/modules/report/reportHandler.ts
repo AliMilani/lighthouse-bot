@@ -14,13 +14,6 @@ type createDailyReportParams = {
 };
 
 class ReportHandler {
-  //dependencies:
-  //userService
-  //reportService
-  //ReportProducer
-  // handlers:
-  // create report (add to db, handler erros, add to queue, etc)
-  // cancel report (remove job from queue)
 
   constructor(
     private _reportService: ReportService,
@@ -28,7 +21,7 @@ class ReportHandler {
     private _reportProducer: ReportPoducer
   ) {}
 
-  public async createReport({ userId, websiteUrl }: createReportParams) {
+  public async createReportNow({ userId, websiteUrl }: createReportParams) {
     const user = await this._userService.findById(userId);
     if (!user) throw new Error(`User with id ${userId} not found`);
     const report = await this._reportService.create({
@@ -45,6 +38,11 @@ class ReportHandler {
     websiteUrl,
     hour,
   }: createDailyReportParams) {
+    await this._verifyDailyReport({
+      hour,
+      userId,
+      websiteUrl,
+    });
     const user = await this._userService.findById(userId);
     if (!user) throw new Error(`User with id ${userId} not found`);
     const report = await this._reportService.create({
@@ -55,6 +53,22 @@ class ReportHandler {
     const job = await this._reportProducer.addReportJob(report, user);
     if (!job.id) throw new Error("Job id is undefined");
     await this._reportService.updateJobId(report.id, job.id);
+  }
+
+  private async _verifyDailyReport({
+    websiteUrl,
+    hour,
+    userId,
+  }: createDailyReportParams) {
+    const userOtherReports = await this._reportService.findAllByUserId(userId);
+    const isDuplicate = userOtherReports.some(
+      (report) => report.websiteUrl === websiteUrl && report.hour === hour
+    );
+    if (isDuplicate) throw new Error("Duplicate daily report");
+    const isReachingLimit =
+      userOtherReports.filter((report) => report.websiteUrl === websiteUrl)
+        .length >= 3;
+    if (isReachingLimit) throw new Error("Reaching same website limit");
   }
 }
 
