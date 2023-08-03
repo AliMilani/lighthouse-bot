@@ -67,6 +67,12 @@ class Bot {
   }
 
   private _useCommands(): void {
+    this._bot.telegram.setMyCommands([
+      { command: "help", description: "راهنمای ربات" },
+      // { command: "daily", description: "تنظیم گزارش روزانه" },
+      // { command: "now", description: "گزارش فوری" },
+      {command: "list", description: "لیست گزارشات روزانه"},
+    ])
     // const menuKeyboard = Markup.keyboard(
     //   [
     //     Markup.button.callback("تست سایت", "testSite"),
@@ -127,7 +133,7 @@ class Bot {
       if (hour < 0 || hour > 23) {
         await ctx.telegram.sendMessage(
           ctx.chat.id,
-          "ساعت باید بین 0 تا 24 باشد"
+          "ساعت باید بین 0 تا 23 باشد"
         );
         return;
       }
@@ -156,7 +162,7 @@ class Bot {
         if (error.message === "Reaching same website limit") {
           return await ctx.telegram.sendMessage(
             ctx.chat.id,
-            "شما نمی توانید بیش از ۳ گزارش با یک آدرس وب سایت ثبت کنید"
+            "شما نمی توانید بیش از ۳ گزارش با یک آدرس وب سایت ثبت کنید \n مشاهده همه گزارش ها با دستور /list"
           );
         }
       }
@@ -246,12 +252,16 @@ class Bot {
     const helpMessage = `
     ✔<b>دریافت گزارش روزانه</b>:
 برای دریافت گزارش به صورت روزانه دستور زیر را ارسال کنید و طبق این فرمت ادرس سایت و ساعت را مشخص کنید
-<code>/daily example.com 15</code>
+/daily example.com 15
 در مثال بالا هر روز ساعت ۳ گزارش ارسال می شود
 
 
 ✔<b>دریافت گزارش فوری</b>:
-<code>/now example.com‍‍</code>`;
+/now example.com‍‍
+
+✔<b>لیست گزارش ها</b>:
+برای مشاهده لیست گزارش های خود دستور زیر را ارسال کنید
+/list`;
     await this._bot.telegram.sendMessage(chatId, helpMessage, {
       parse_mode: "HTML",
     });
