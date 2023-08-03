@@ -17,7 +17,8 @@ class ReportConsumer {
       host: config.get<string>("redis.host"),
       port: config.get<number>("redis.port"),
     },
-    autorun: true,
+    // autorun: true, default true
+    // maxStalledCount: 1, default 1
   };
   constructor(bot: Bot) {
     this._bot = bot;
@@ -124,7 +125,19 @@ class ReportConsumer {
           ...job.data,
           isCancelled: true,
         });
-        return await ctx.editMessageText("✅ لغو شد :)");
+        try {
+          return await ctx.editMessageText("✅ لغو شد :)");
+        } catch (error: TelegramError | any) {
+          if (error instanceof TelegramError)
+            if (
+              error.response.description ===
+                "Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message" ||
+              error.response.description ===
+                "Bad Request: message to edit not found"
+            )
+              return;
+          throw error;
+        }
       });
   };
 
