@@ -30,6 +30,7 @@ class ReportConsumer {
     );
 
     this._worker.on("failed", this._handleFailedJob);
+    // this._worker.on("error", this._handleErrorJob);
     this._worker.on("completed", this._handleCompletedJob);
     this._worker.on("progress", this._handleProgressJob);
   }
@@ -47,6 +48,7 @@ class ReportConsumer {
         case ReportJobSteps.CreateHtmlReport:
           if (job.data.isCancelled) return;
           await job.updateProgress(30);
+          // throw new Error("test");
           await this._createHtmlReport(job);
           await job.updateProgress(50);
           await job.updateData({
@@ -207,19 +209,20 @@ class ReportConsumer {
   private async _sendPdfReport(job: Job<ReportJobData>): Promise<void> {
     const { reportId, chatId, websiteUrl } = job.data;
     const pdfBuffer = await this._getPdfCache(reportId);
-    await this._bot
-      .getBot()
-      .telegram.sendDocument(
-        chatId,
-        Input.fromBuffer(
-          pdfBuffer,
-          `report-${websiteUrl}-${new Date().toISOString()}.pdf`
-        ),
-        {
-          reply_to_message_id: job.data.progressMessageId,
-          caption: `Report for ${websiteUrl}`,
-        }
-      );
+    const bot = this._bot.getBot();
+    const documentMessage = await bot.telegram.sendDocument(
+      chatId,
+      Input.fromBuffer(
+        pdfBuffer,
+        `report-${websiteUrl}-${new Date().toISOString()}.pdf`
+      ),
+      {
+        reply_to_message_id: job.data.progressMessageId,
+        caption: `Report for ${websiteUrl}`,
+      }
+    );
+    await bot.telegram.pinChatMessage(chatId, documentMessage.message_id);
+
     await this._unsetPdfCache(reportId);
   }
 
@@ -278,19 +281,30 @@ class ReportConsumer {
     return await redisClient.get(key);
   }
 
-  private async _handleFailedJob(
+  private _handleFailedJob = async (
     job: Job<ReportJobData> | undefined,
     err: Error
-  ): Promise<void> {
+  ): Promise<void> => {
     console.error(
       `Job ${job?.id} failed with error ${err}\n ${JSON.stringify(err.stack)}`
     );
+    // // notify user
+    // const bot = this._bot.getBot();
+    // if (!job?.data) throw new Error(`Job data is undefined`);
+    // const { chatId, progressMessageId } = job.data;
+    // const message: string = `خطایی رخ داده است ، سرور ممکنه است به زودی درخواست شما را تکمیل کند.`;
+    // if (progressMessageId)
+    //   await bot.telegram.editMessageText(
+    //     chatId,
+    //     progressMessageId,
+    //     undefined,
+    //     message
+    //   );
+  };
 
-    if (!job) throw new Error("Job is undefined");
-
-    if (err.message !== "Job expired") {
-    }
-  }
+  // private _handleErrorJob = async (error: Error): Promise<void> => {
+  //   console.error(`Error occured in worker ${error}`);
+  // };
 
   private _handleCompletedJob = async (
     job: Job<ReportJobData> | undefined,
