@@ -36,47 +36,9 @@ class ReportConsumer {
   private _reportProcessor = async (job: Job<ReportJobData>): Promise<void> => {
     console.log(JSON.stringify(job.asJSON(), null, 2));
     const chatId = job.data.chatId;
-    const bot = this._bot.getBot();
 
-    try {
-      if (!job.data.progressMessageId) {
-        const progressMessageId = await this._createProgressMessage(
-          chatId,
-          "در حال آماده سازی..."
-        );
-        await job.updateData({
-          ...job.data,
-          progressMessageId,
-        });
-      }
-    } catch (error: TelegramError | any) {
-      if (error instanceof TelegramError)
-        if (
-          error.response.description ===
-            "Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message" ||
-          error.response.description ===
-            "Bad Request: message to edit not found"
-        )
-          return;
-      throw error;
-    }
-
-    // TODO: move to bot / report handler module
-    this._bot
-      .getBot()
-      .action(`cancel_${job.data.progressMessageId}`, async (ctx) => {
-        await job.discard();
-        const token = job?.token;
-        if (!token) throw new Error("token is undefined");
-        // await job.moveToFailed(new Error("Job canceled"), token);
-        // await job.moveToCompleted("Job canceled", token);
-        // await job.remove()
-        await job.updateData({
-          ...job.data,
-          isCancelled: true,
-        });
-        return await ctx.editMessageText("✅ لغو شد :)");
-      });
+    if (!job.data.progressMessageId) await this._initializeProgressMessage(job);
+    this._handleUserCancel(job);
 
     let step = job.data.step;
     while (step !== ReportJobSteps.Finish) {
@@ -105,6 +67,7 @@ class ReportConsumer {
         case ReportJobSteps.SendPdfReport:
           if (job.data.isCancelled) return;
           await job.updateProgress(90);
+          const bot = this._bot.getBot();
           await bot.telegram.sendChatAction(chatId, "upload_document");
           await this._sendPdfReport(job);
           await job.updateData({
@@ -112,12 +75,57 @@ class ReportConsumer {
             step: ReportJobSteps.Finish,
           });
           step = ReportJobSteps.Finish;
-          // await job.updateProgress(100);
           break;
         default:
           throw new Error(`Invalid step ${step}`);
       }
     }
+  };
+
+  private _initializeProgressMessage = async (
+    job: Job<ReportJobData>
+  ): Promise<void> => {
+    try {
+      const { chatId } = job.data;
+
+      const progressMessageId = await this._createProgressMessage(
+        chatId,
+        "در حال آماده سازی..."
+      );
+      await job.updateData({
+        ...job.data,
+        progressMessageId,
+      });
+    } catch (error: TelegramError | any) {
+      if (error instanceof TelegramError)
+        if (
+          error.response.description ===
+            "Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message" ||
+          error.response.description ===
+            "Bad Request: message to edit not found"
+        )
+          return;
+      throw error;
+    }
+  };
+
+  private _handleUserCancel = (job: Job<ReportJobData>): void => {
+    this._bot
+      .getBot()
+      .action(`cancel_${job.data.progressMessageId}`, async (ctx) => {
+        // TODO: better way to cancel job
+        await job.discard();
+        const token = job?.token;
+        if (!token) throw new Error("token is undefined");
+        // await job.moveToFailed(new Error("Job canceled"), token);
+        // await job.moveToCompleted("Job canceled", token);
+        // await job.remove()
+        await job.updateData({
+          ...job.data,
+          isCancelled: true,
+        });
+        return await ctx.editMessageText("✅ لغو شد :)");
+      });
   };
 
   private _createProgressMessage = async (
@@ -171,9 +179,6 @@ class ReportConsumer {
 
   private async _createHtmlReport(job: Job<ReportJobData>): Promise<void> {
     const { reportId } = job.data;
-    // const report = await this._reportService.findById(reportId);
-    // if (!report)
-    // throw new Error(`Report with id ${job.data.reportId} not found`);
     const reportHtml = await createReport(job.data.websiteUrl);
     this._setHtmlCache(reportId, reportHtml);
   }
@@ -283,7 +288,6 @@ class ReportConsumer {
       this._handleCancelledJob(job);
     }
     console.log(`Job ${job?.id} completed with result ${result}`);
-    // delete message
     const bot = this._bot.getBot();
     if (!job?.data?.progressMessageId)
       throw new Error("progress message is not defined");
@@ -296,7 +300,6 @@ class ReportConsumer {
   private _handleCancelledJob = async (
     job: Job<ReportJobData>
   ): Promise<void> => {
-    // unset all caches
     const { reportId } = job.data;
     await this._unsetHtmlCache(reportId);
     await this._unsetPdfCache(reportId);
@@ -306,6 +309,7 @@ class ReportConsumer {
     job: Job<ReportJobData>,
     progress: number | object
   ): Promise<void> => {
+    // TODO : get progress as object { progress: number, message: string}
     const { chatId, websiteUrl, progressMessageId, isCancelled } = job.data;
     if (isCancelled) return;
     if (!progressMessageId)
