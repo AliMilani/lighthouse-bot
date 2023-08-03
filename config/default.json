@@ -18,5 +18,9 @@
 },
 "report": {
     "concurrency": 3
+},
+"log": {
+    "consoleLevel": "info",
+    "fileLevel": "info"
 }
 }

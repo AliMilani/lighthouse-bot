@@ -4,6 +4,7 @@ import config from "config";
 import validateEnv from "./startup/validateEnv.ts";
 import { userService, reportHandler } from "./DI.ts";
 import ReportConsumer from "./modules/report/reportConsumer.ts";
+import logger from "./lib/logger.ts";
 
 import Bot from "./modules/bot/bot.ts";
 
@@ -19,7 +20,9 @@ class App {
 
   public async start(): Promise<void> {
     this._db = await this._connectDatabase();
+    logger.info("Database connected");
     this._bot.launch();
+    logger.info("Bot started");
   }
 
   private async _connectDatabase(): Promise<mongoose.Connection> {
