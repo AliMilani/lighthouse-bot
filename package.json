@@ -4,7 +4,8 @@
   "main": "stc/index.ts",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon --exec ts-node --esm ./src/index.ts"
+    "dev": "nodemon --exec ts-node --esm ./src/main.ts",
+    "start": "ts-node --esm ./src/main.ts"
   },
   "type": "module",
   "dependencies": {
