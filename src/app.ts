@@ -1,12 +1,12 @@
 import "dotenv/config.js";
 import mongoose from "mongoose";
 import config from "config";
-import validateEnv from "./startup/validateEnv.ts";
-import { userService, reportHandler } from "./DI.ts";
-import ReportConsumer from "./modules/report/reportConsumer.ts";
-import logger from "./lib/logger.ts";
+import validateEnv from "./startup/validateEnv";
+import { userService, reportHandler } from "./DI";
+import ReportConsumer from "./modules/report/reportConsumer";
+import logger from "./lib/logger";
 
-import Bot from "./modules/bot/bot.ts";
+import Bot from "./modules/bot/bot";
 
 class App {
   private _db: mongoose.Connection | null = null;

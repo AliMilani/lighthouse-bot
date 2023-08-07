@@ -1,11 +1,11 @@
 import { Worker, Job, RedisClient, WorkerOptions } from "bullmq";
 import { Input, TelegramError } from "telegraf";
 import config from "config";
-import { ReportJobData } from "../../types/reportTypes.ts";
-import { ReportJobSteps } from "../../enums/reportEnums.ts";
-import { createReport } from "../../lib/lighthose.ts";
-import { convertFromHtml } from "../../utils/pdfUtil.ts";
-import Bot from "../bot/bot.ts";
+import { ReportJobData } from "../../types/reportTypes";
+import { ReportJobSteps } from "../../enums/reportEnums";
+import { createReport } from "../../lib/lighthose";
+import { convertFromHtml } from "../../utils/pdfUtil";
+import Bot from "../bot/bot";
 
 class ReportConsumer {
   private _worker: Worker;
@@ -43,7 +43,7 @@ class ReportConsumer {
 
     if (!job.data.progressMessageId) await this._initializeProgressMessage(job);
     this._handleUserCancel(job);
-
+    console.log("handle user cancel");
     let step = job.data.step;
     while (step !== ReportJobSteps.Finish) {
       switch (step) {
@@ -287,8 +287,11 @@ class ReportConsumer {
     job: Job<ReportJobData> | undefined,
     err: Error
   ): Promise<void> => {
-    console.error(
-      `Job ${job?.id} failed with error ${err}\n ${JSON.stringify(err.stack)}`
+    console.log(err);
+    console.log(
+      `Job ${job?.id} failed with error ${JSON.stringify(
+        err
+      )}\n ${JSON.stringify(err.stack)}`
     );
     // // notify user
     // const bot = this._bot.getBot();

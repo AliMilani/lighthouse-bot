@@ -1,9 +1,9 @@
 import { Telegraf } from "telegraf";
 import config from "config";
 import { SocksProxyAgent } from "socks-proxy-agent";
-import UserService from "../user/userService.ts";
-import IBotContext from "../../interfaces/IBotContext.ts";
-import ReportHandler from "../report/reportHandler.ts";
+import UserService from "../user/userService";
+import IBotContext from "../../interfaces/IBotContext";
+import ReportHandler from "../report/reportHandler";
 import mongoose from "mongoose";
 
 type BotOptions = {

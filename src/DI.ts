@@ -1,7 +1,7 @@
-import ReportHandler from "./modules/report/reportHandler.ts";
-import ReportProducer from "./modules/report/reportProducer.ts";
-import ReportService from "./modules/report/reportService.ts";
-import UserService from "./modules/user/userService.ts";
+import ReportHandler from "./modules/report/reportHandler";
+import ReportProducer from "./modules/report/reportProducer";
+import ReportService from "./modules/report/reportService";
+import UserService from "./modules/user/userService";
 
 const reportService = new ReportService();
 const userService = new UserService();

@@ -3,3 +3,4 @@ node_modules
 yarn-error.log
 src/tmp
 logs/
+dist/

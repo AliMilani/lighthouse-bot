@@ -1,5 +1,5 @@
-import ReportModel from "../../models/reportModel.ts";
-import IReport from "../../interfaces/iReport.ts";
+import ReportModel from "../../models/reportModel";
+import IReport from "../../interfaces/iReport";
 
 class ReportService {
   findById(id: string) {

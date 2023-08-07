@@ -1,5 +1,5 @@
 import { ObjectId } from "mongoose";
-import { ReportJobSteps } from "../enums/reportEnums.ts";
+import { ReportJobSteps } from "../enums/reportEnums";
 
 type ReportJobData = {
   reportId: string;

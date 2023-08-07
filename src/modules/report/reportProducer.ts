@@ -1,10 +1,10 @@
 import { Job, JobData, Queue, QueueOptions } from "bullmq";
 import config from "config";
 import { HydratedDocument } from "mongoose";
-import { ReportJobData } from "../../types/reportTypes.ts";
-import { ReportJobSteps } from "../../enums/reportEnums.ts";
-import IReport from "../../interfaces/iReport.ts";
-import IUser from "../../interfaces/IUser.ts";
+import { ReportJobData } from "../../types/reportTypes";
+import { ReportJobSteps } from "../../enums/reportEnums";
+import IReport from "../../interfaces/iReport";
+import IUser from "../../interfaces/IUser";
 
 class ReportPoducer {
   private _queue: Queue;

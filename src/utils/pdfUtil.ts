@@ -11,7 +11,7 @@ const { endpoint, token }: HeadLessEndpointConfig =
   config.get<HeadLessEndpointConfig>("headLessBrowser");
 
 const _browserConnectionOptions: ConnectOptions = {
-  browserWSEndpoint: `wss://${endpoint}?token=${token}`,
+  browserWSEndpoint: `ws://${endpoint}?token=${token}`,
 };
 
 const convertFromHtml = async (html: string) => {

@@ -1,5 +1,5 @@
-import UserModel from "../../models/userModel.ts";
-import IUser from "../../interfaces/IUser.ts";
+import UserModel from "../../models/userModel";
+import IUser from "../../interfaces/IUser";
 
 class UserService {
   create(user: IUser) {
