@@ -10,7 +10,9 @@
 },
 "redis": {
     "host": "",
-    "port": ""
+    "port": "",
+    "username": "",
+    "password": ""
 },
 "headLessBrowser": {
     "endpoint": "",

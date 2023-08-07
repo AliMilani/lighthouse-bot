@@ -13,6 +13,8 @@ class ReportPoducer {
     connection: {
       host: config.get<string>("redis.host"),
       port: config.get<number>("redis.port"),
+      username: config.get<string>("redis.username"),
+      password: config.get<string>("redis.password"),
     },
   };
 
