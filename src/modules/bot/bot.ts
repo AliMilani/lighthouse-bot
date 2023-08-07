@@ -39,8 +39,9 @@ class Bot {
   }
 
   private _hasSocksProxy(): boolean {
-    return (
-      config.has("bot.socksProxy.host") && config.has("bot.socksProxy.port")
+    return Boolean(
+      config.get<string>("bot.socksProxy.host") &&
+        config.get<string>("bot.socksProxy.port")
     );
   }
 
