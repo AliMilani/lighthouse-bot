@@ -26,8 +26,8 @@ const loadPage = async ( headlessEndpoint) => {
   console.log({browserWSEndpoint})
   const browser = await puppeteer.default.connect({
     browserWSEndpoint,
-    defaultViewport: null,
-    ignoreHTTPSErrors: true,
+    // defaultViewport: null,
+    // ignoreHTTPSErrors: true,
   })
   const page = await browser.newPage();
   return page
