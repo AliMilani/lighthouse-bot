@@ -3,7 +3,7 @@ import { ConnectOptions } from "puppeteer-core";
 import config from "config";
 
 const _browserConnectionOptions: ConnectOptions = {
-  browserWSEndpoint: config.get<string>("headLessEndpoint"),
+  browserWSEndpoint: `wss://${config.get<string>("headLessEndpoint")}`,
 };
 
 const convertFromHtml = async (html: string) => {
