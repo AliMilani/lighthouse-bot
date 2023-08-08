@@ -8,7 +8,8 @@ import mongoose from "mongoose";
 
 type BotOptions = {
   telegram?: {
-    agent: SocksProxyAgent;
+    agent?: SocksProxyAgent;
+    apiRoot?: string;
   };
 };
 
@@ -31,11 +32,11 @@ class Bot {
     this._userService = userService;
     this._reportHandler = reportHandler;
 
+    this._botOptions.telegram = {};
     if (this._hasSocksProxy())
-      this._botOptions.telegram = {
-        agent: this._getSocksProxyAgent(),
-      };
-
+      this._botOptions.telegram.agent = this._getSocksProxyAgent();
+    if (this._hasApiRoot())
+      this._botOptions.telegram.apiRoot = config.get<string>("bot.apiRoot");
     const botToken = config.get<string>("bot.token");
 
     this._bot = new Telegraf<IBotContext>(botToken, this._botOptions);
@@ -48,6 +49,10 @@ class Bot {
       config.get<string>("bot.socksProxy.host") &&
         config.get<string>("bot.socksProxy.port")
     );
+  }
+
+  private _hasApiRoot(): boolean {
+    return Boolean(config.get<string>("bot.apiRoot"));
   }
 
   private _getSocksProxyAgent(): SocksProxyAgent {

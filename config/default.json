@@ -5,7 +5,8 @@
     "token": "",
     "socksProxy": {
     "host": "",
-    "port": ""
+    "port": "",
+    "apiRoot": ""
     }
 },
 "redis": {
