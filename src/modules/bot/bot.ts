@@ -12,7 +12,12 @@ type BotOptions = {
   };
 };
 
-type SocksProxy = { host: string; port: string };
+type SocksProxy = {
+  host: string;
+  port: string;
+  username?: string;
+  password?: string;
+};
 
 class Bot {
   private static _instance: Bot;
@@ -47,7 +52,12 @@ class Bot {
 
   private _getSocksProxyAgent(): SocksProxyAgent {
     const socksProxy: SocksProxy = config.get<SocksProxy>("bot.socksProxy");
-    return new SocksProxyAgent(`socks://${socksProxy.host}:${socksProxy.port}`);
+    let socksProxyUri = `${socksProxy.host}:${socksProxy.port}`;
+    if (socksProxy.username && socksProxy.password)
+      socksProxyUri = `${socksProxy.username}:${socksProxy.password}@${socksProxyUri}`;
+    console.log(socksProxyUri);
+    return new SocksProxyAgent(`socks://${socksProxyUri}`);
+    // docker run -d -p 5888:5888 -e PROXY_USER=xxxxx -e PROXY_PASSWORD=xxxxx -e PROXY_SERVER=0.0.0.0:5888 xkuma/socks5
   }
 
   private _useUserIdMiddleware(): void {

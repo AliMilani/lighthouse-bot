@@ -4,7 +4,9 @@
         "token": "BOT_TOKEN",
         "socksProxy": {
             "host": "SOCKS_HOST",
-            "port": "SOCKS_PORT"
+            "port": "SOCKS_PORT",
+            "username": "SOCKS_USERNAME",
+            "password": "SOCKS_PASSWORD"
         }
     },
     "redis": {
