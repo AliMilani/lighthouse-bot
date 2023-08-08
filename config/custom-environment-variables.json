@@ -15,8 +15,5 @@
         "username": "REDIS_USERNAME",
         "password": "REDIS_PASSWORD"
     },
-    "headLessBrowser": {
-        "endpoint": "HEADLESS_BROWSER_ENDPOINT",
-        "token": "HEADLESS_BROWSER_TOKEN"
-    }
+    "headLessEndpoint": "HEADLESS_BROWSER_ENDPOINT"
 }

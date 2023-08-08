@@ -1,12 +1,8 @@
 import { fork } from "child_process";
-import path from "path";
+import config from "config";
 
 const createReport = async (url: string): Promise<string> => {
-  console.log("start creating report", url);
-  console.log(__dirname);
-  console.log(path.resolve(__dirname, "../child/lighthouse-child.js"));
   return new Promise((resolve, reject) => {
-    // const child = fork(path.resolve(__dirname, "../child/lighthouse-child.js"));
     const child = fork("./src/child/lighthouse-child.js");
     child.on("message", (htmlPage: string) => {
       resolve(htmlPage);
@@ -14,7 +10,8 @@ const createReport = async (url: string): Promise<string> => {
     child.on("error", (error) => {
       reject(error);
     });
-    child.send(url);
+    const headlessEndpoint = config.get<string>("headLessEndpoint");
+    child.send({ url, headlessEndpoint });
     console.log("message sent");
   });
 };

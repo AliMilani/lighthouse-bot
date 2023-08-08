@@ -2,16 +2,8 @@ import puppeteer from "puppeteer-core";
 import { ConnectOptions } from "puppeteer-core";
 import config from "config";
 
-type HeadLessEndpointConfig = {
-  token: string;
-  endpoint: string;
-};
-
-const { endpoint, token }: HeadLessEndpointConfig =
-  config.get<HeadLessEndpointConfig>("headLessBrowser");
-
 const _browserConnectionOptions: ConnectOptions = {
-  browserWSEndpoint: `ws://${endpoint}?token=${token}`,
+  browserWSEndpoint: config.get<string>("headLessEndpoint"),
 };
 
 const convertFromHtml = async (html: string) => {
