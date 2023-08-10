@@ -12,7 +12,7 @@ class ReportConsumer {
   private _bot: Bot;
   private readonly _queueName = "reportQueue";
   private _workerOptions: WorkerOptions = {
-    concurrency: 3,
+    concurrency: 2,
     connection: {
       host: config.get<string>("redis.host"),
       port: config.get<number>("redis.port"),
@@ -20,7 +20,7 @@ class ReportConsumer {
       password: config.get<string>("redis.password"),
     },
     // autorun: true, default true
-    // maxStalledCount: 1, default 1
+    maxStalledCount: 5, // default 1
   };
   constructor(bot: Bot) {
     this._bot = bot;
