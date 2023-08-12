@@ -2,13 +2,13 @@
     "mongodbURI": "MONGODB_URI",
     "bot": {
         "token": "BOT_TOKEN",
+        "apiRoot": "BOT_API_ROOT",
         "socksProxy": {
             "host": "SOCKS_HOST",
             "port": "SOCKS_PORT",
             "username": "SOCKS_USERNAME",
             "password": "SOCKS_PASSWORD"
-        },
-        "apiRoot": "BOT_API_ROOT"
+        }
     },
     "redis": {
         "host": "REDIS_HOST",

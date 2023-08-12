@@ -1,7 +1,5 @@
-import "dotenv/config.js";
 import mongoose from "mongoose";
 import config from "config";
-import validateEnv from "./startup/validateEnv";
 import { userService, reportHandler } from "./DI";
 import ReportConsumer from "./modules/report/reportConsumer";
 import logger from "./lib/logger";
@@ -13,7 +11,6 @@ class App {
   private _bot: Bot;
 
   constructor() {
-    validateEnv(process.env);
     this._bot = Bot.getInstance(userService, reportHandler);
     new ReportConsumer(this._bot);
   }
